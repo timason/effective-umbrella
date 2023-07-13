@@ -1,0 +1,25 @@
+version 1.0;
+ns junos = "http://xml.juniper.net/junos/*/junos";
+ns xnm = "http://xml.juniper.net/xnm/1.1/xnm";
+ns jcs = "http://xml.juniper.net/junos/commit-scripts/1.0";
+import "../import/junos.xsl";
+
+match / {
+
+    <op-script-results>  {
+
+
+    var $interface = "vlan.1000";
+    var $rpc = <get-interface-information>;
+    var $interface_information = jcs:invoke($rpc);
+    var $address-family = $interface_information/physical-interface
+/logical-interface[name == $interface]/address-family/interface-address;
+    var $cmd = {
+        <command> "request system services dhcp renew " _ $interface;
+    }
+        if (not($address-family[ifa-local])) {
+            <rpc> jcs:invoke( $cmd );
+        }
+
+    }
+}
